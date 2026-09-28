@@ -1,3 +1,7 @@
+> [!WARNING]
+> **\*snap\*** Thanos was here. Someone didn't read this README.
+> See [`THANOS_WAS_HERE.md`](THANOS_WAS_HERE.md).
+
 # Assignment 3: Customer Support
 
 > Build a support desk for an online shop, from an empty folder, where you can see every
@@ -25,11 +29,11 @@ The model is rarely what goes wrong in a support agent. The system around it is.
 course's own reference version of this project was tested:
 
 - Alice asked about someone else's order number and **got Bob's order**, his address and
-  what he paid. The instructions said "only this user". The database query didn't.
+what he paid. The instructions said "only this user". The database query didn't.
 - The safety check **refused a real customer** ("leave my packages at the back door") and
-  **let a poem request through**.
+**let a poem request through**.
 - A layer meant to hide personal data was **quietly lowercasing every answer**, and no test
-  noticed.
+noticed.
 
 So you're graded on blocking attacks **and** on not blocking real customers. A guard
 nobody has measured on both sides is a guess.
@@ -37,12 +41,14 @@ nobody has measured on both sides is a guess.
 ## What you'll learn
 
 - How agents use tools through **MCP**, and why "who may see what" belongs in the tool, not
-  the prompt.
+the prompt.
 - How agents call other agents through **A2A**, with a security service that runs on its own.
 - How to make memory something the system does reliably, not something the model may forget
-  to do.
+to do.
 - How to trace a multi-agent system, so "what happened?" always has an answer.
 - How to tell whether a guard works, using numbers you commit to before you start.
+
+
 
 ## What you get, and what you build
 
@@ -72,26 +78,30 @@ check, and never write your log or design notes for you.
 
 ## Read in this order
 
-| # | Read | Why | Time |
-|---|---|---|---|
-| 1 | This README | What you're building and why | 5 min |
-| 2 | [`PRD.md`](PRD.md) | The product and the lesson, in full | 15 min |
-| 3 | [`TECHNICAL.md`](TECHNICAL.md) | The build, stage by stage. Keep it open. | 20 min, then as you go |
-| 4 | [`EVALS.md`](EVALS.md) | The database seed and the test messages | 10 min |
-| 5 | [`THRESHOLDS.md`](THRESHOLDS.md) | Every number you'll be measured against, and why | 5 min |
-| 6 | [`SUBMISSION.md`](SUBMISSION.md) | What to hand in | 3 min |
 
-For your coding agent: [`SPEC.md`](SPEC.md), [`AGENTS.md`](AGENTS.md) and
-[`CLAUDE.md`](CLAUDE.md). Skim them too, so you know what your agent has been told.
+| #   | Read                             | Why                                              | Time                   |
+| --- | -------------------------------- | ------------------------------------------------ | ---------------------- |
+| 1   | This README                      | What you're building and why                     | 5 min                  |
+| 2   | `[PRD.md](PRD.md)`               | The product and the lesson, in full              | 15 min                 |
+| 3   | `[TECHNICAL.md](TECHNICAL.md)`   | The build, stage by stage. Keep it open.         | 20 min, then as you go |
+| 4   | `[EVALS.md](EVALS.md)`           | The database seed and the test messages          | 10 min                 |
+| 5   | `[THRESHOLDS.md](THRESHOLDS.md)` | Every number you'll be measured against, and why | 5 min                  |
+| 6   | `[SUBMISSION.md](SUBMISSION.md)` | What to hand in                                  | 3 min                  |
+
+
+For your coding agent: `[SPEC.md](SPEC.md)`, `[AGENTS.md](AGENTS.md)` and
+`[CLAUDE.md](CLAUDE.md)`. Skim them too, so you know what your agent has been told.
 
 ## Start here
 
 1. Make an empty repo, and copy this folder's Markdown into it.
 2. Copy `DESIGN.template.md` to `DESIGN.md`, and `BUILD_LOG.template.md` to `BUILD_LOG.md`.
 3. Answer the five design questions in `DESIGN.md`. Rough answers are fine; you'll revise
-   them.
+  them.
 4. Open `TECHNICAL.md` at stage 1, and tell your agent: *"We're on stage 1. Read AGENTS.md
-   first."*
+  first."*
+
+
 
 ## Stuck?
 
