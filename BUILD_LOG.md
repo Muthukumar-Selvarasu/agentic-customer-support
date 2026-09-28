@@ -1,4 +1,4 @@
-(replace this line with the reading check from README.md)
+Alice never sees Bob's laptop.
 
 # BUILD_LOG
 
