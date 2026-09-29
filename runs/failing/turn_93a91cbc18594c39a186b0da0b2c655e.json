@@ -1,0 +1,78 @@
+{
+  "turn_id": "turn_93a91cbc18594c39a186b0da0b2c655e",
+  "trace_id": "e02ff5e0a1ad67feafdce8fba2058dd7",
+  "user": "diana.prince@hero.net",
+  "message": "Please remember I work from home, so leave packages at the back door",
+  "terminated": "error",
+  "blocked_at": null,
+  "wall_clock_ms": 35677,
+  "tokens": {
+    "in": 10023,
+    "out": 246
+  },
+  "steps": [
+    {
+      "key": "sanitize",
+      "status": "passed",
+      "ms": 3
+    },
+    {
+      "key": "judge",
+      "status": "passed",
+      "ms": 6223
+    },
+    {
+      "key": "guardrail",
+      "status": "passed",
+      "ms": 3688
+    },
+    {
+      "key": "recall",
+      "status": "passed",
+      "ms": 3050
+    },
+    {
+      "key": "agent",
+      "status": "passed",
+      "ms": 21771
+    },
+    {
+      "key": "mask",
+      "status": "passed",
+      "ms": 10
+    },
+    {
+      "key": "save",
+      "status": "error",
+      "ms": 929
+    }
+  ],
+  "tool_calls": [
+    {
+      "name": "action-log",
+      "ok": true,
+      "ms": 39
+    },
+    {
+      "name": "find-customer-orders",
+      "ok": true,
+      "ms": 4
+    },
+    {
+      "name": "action-log",
+      "ok": true,
+      "ms": 5
+    },
+    {
+      "name": "action-log",
+      "ok": true,
+      "ms": 12
+    },
+    {
+      "name": "action-log",
+      "ok": true,
+      "ms": 6
+    }
+  ],
+  "llm_calls": 6
+}

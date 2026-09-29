@@ -1,0 +1,27 @@
+{
+  "turn_id": "turn_c22ea3a6ee4143edacf583c7e645b10b",
+  "trace_id": "14dc7d5eb5cb1dbc0e12a3473c1e242e",
+  "user": "charlie.d@webmail.com",
+  "message": "Please remember I'm allergic to peanuts, so no peanut packing material",
+  "terminated": "error",
+  "blocked_at": null,
+  "wall_clock_ms": 9,
+  "tokens": {
+    "in": 0,
+    "out": 0
+  },
+  "steps": [
+    {
+      "key": "sanitize",
+      "status": "passed",
+      "ms": 3
+    },
+    {
+      "key": "judge",
+      "status": "error",
+      "ms": 6
+    }
+  ],
+  "tool_calls": [],
+  "llm_calls": 0
+}

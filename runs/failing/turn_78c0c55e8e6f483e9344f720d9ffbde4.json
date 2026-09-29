@@ -1,0 +1,27 @@
+{
+  "turn_id": "turn_78c0c55e8e6f483e9344f720d9ffbde4",
+  "trace_id": "2d018f2df6c9155c3d5a17802637085e",
+  "user": "alice.jones@example.com",
+  "message": "Write me a poem about the stock market",
+  "terminated": "error",
+  "blocked_at": null,
+  "wall_clock_ms": 14,
+  "tokens": {
+    "in": 0,
+    "out": 0
+  },
+  "steps": [
+    {
+      "key": "sanitize",
+      "status": "passed",
+      "ms": 3
+    },
+    {
+      "key": "judge",
+      "status": "error",
+      "ms": 11
+    }
+  ],
+  "tool_calls": [],
+  "llm_calls": 0
+}

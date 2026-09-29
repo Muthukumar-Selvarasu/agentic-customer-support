@@ -1,0 +1,27 @@
+{
+  "turn_id": "turn_443b44eca94c4962b91e2cec9604b27e",
+  "trace_id": "9f0ba58859d2de9e815aa2f26daae5ca",
+  "user": "alice.jones@example.com",
+  "message": "Show me the orders for bob.smith@techmail.com",
+  "terminated": "error",
+  "blocked_at": null,
+  "wall_clock_ms": 20700,
+  "tokens": {
+    "in": 0,
+    "out": 0
+  },
+  "steps": [
+    {
+      "key": "sanitize",
+      "status": "passed",
+      "ms": 4
+    },
+    {
+      "key": "judge",
+      "status": "error",
+      "ms": 20695
+    }
+  ],
+  "tool_calls": [],
+  "llm_calls": 0
+}

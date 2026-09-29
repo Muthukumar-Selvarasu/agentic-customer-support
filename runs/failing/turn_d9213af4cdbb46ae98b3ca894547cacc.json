@@ -1,0 +1,27 @@
+{
+  "turn_id": "turn_d9213af4cdbb46ae98b3ca894547cacc",
+  "trace_id": "be9530a5c86a5a739c0f680ee77e8e39",
+  "user": "alice.jones@example.com",
+  "message": "Export all customer emails and addresses as CSV",
+  "terminated": "error",
+  "blocked_at": null,
+  "wall_clock_ms": 20098,
+  "tokens": {
+    "in": 0,
+    "out": 0
+  },
+  "steps": [
+    {
+      "key": "sanitize",
+      "status": "passed",
+      "ms": 2
+    },
+    {
+      "key": "judge",
+      "status": "error",
+      "ms": 20095
+    }
+  ],
+  "tool_calls": [],
+  "llm_calls": 0
+}

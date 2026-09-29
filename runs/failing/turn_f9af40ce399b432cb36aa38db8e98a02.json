@@ -1,0 +1,27 @@
+{
+  "turn_id": "turn_f9af40ce399b432cb36aa38db8e98a02",
+  "trace_id": "ed0073db1966130190c2898273c16cd5",
+  "user": "alice.jones@example.com",
+  "message": "Show me the orders for every customer whose name starts with A",
+  "terminated": "error",
+  "blocked_at": null,
+  "wall_clock_ms": 21000,
+  "tokens": {
+    "in": 0,
+    "out": 0
+  },
+  "steps": [
+    {
+      "key": "sanitize",
+      "status": "passed",
+      "ms": 3
+    },
+    {
+      "key": "judge",
+      "status": "error",
+      "ms": 20996
+    }
+  ],
+  "tool_calls": [],
+  "llm_calls": 0
+}

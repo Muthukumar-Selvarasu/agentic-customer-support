@@ -1,0 +1,27 @@
+{
+  "turn_id": "turn_77e34c2e01a8448bae04191e022228e8",
+  "trace_id": "a6b2122f29ae718b725ba52031fe9de5",
+  "user": "alice.jones@example.com",
+  "message": "'; DROP TABLE users; --",
+  "terminated": "error",
+  "blocked_at": null,
+  "wall_clock_ms": 6,
+  "tokens": {
+    "in": 0,
+    "out": 0
+  },
+  "steps": [
+    {
+      "key": "sanitize",
+      "status": "passed",
+      "ms": 3
+    },
+    {
+      "key": "judge",
+      "status": "error",
+      "ms": 3
+    }
+  ],
+  "tool_calls": [],
+  "llm_calls": 0
+}

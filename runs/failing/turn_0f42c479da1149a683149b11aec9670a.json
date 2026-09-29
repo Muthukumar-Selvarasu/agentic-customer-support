@@ -1,0 +1,27 @@
+{
+  "turn_id": "turn_0f42c479da1149a683149b11aec9670a",
+  "trace_id": "404646dbab1c575aa1d21bff31d3138e",
+  "user": "diana.prince@hero.net",
+  "message": "Please remember I work from home, so leave packages at the back door",
+  "terminated": "error",
+  "blocked_at": null,
+  "wall_clock_ms": 12,
+  "tokens": {
+    "in": 0,
+    "out": 0
+  },
+  "steps": [
+    {
+      "key": "sanitize",
+      "status": "passed",
+      "ms": 4
+    },
+    {
+      "key": "judge",
+      "status": "error",
+      "ms": 8
+    }
+  ],
+  "tool_calls": [],
+  "llm_calls": 0
+}

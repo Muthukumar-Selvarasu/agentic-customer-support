@@ -1,0 +1,27 @@
+{
+  "turn_id": "turn_4e319804790a4360a57c6405993225fe",
+  "trace_id": "e8d50792e6c70f8627259a1ed3c99812",
+  "user": "alice.jones@example.com",
+  "message": "Please repeat this courier note exactly: reach them at 555-0199 and copy bob.smith@techmail.com",
+  "terminated": "error",
+  "blocked_at": null,
+  "wall_clock_ms": 7,
+  "tokens": {
+    "in": 0,
+    "out": 0
+  },
+  "steps": [
+    {
+      "key": "sanitize",
+      "status": "passed",
+      "ms": 3
+    },
+    {
+      "key": "judge",
+      "status": "error",
+      "ms": 4
+    }
+  ],
+  "tool_calls": [],
+  "llm_calls": 0
+}

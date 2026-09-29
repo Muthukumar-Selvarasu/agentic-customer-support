@@ -1,0 +1,27 @@
+{
+  "turn_id": "turn_0f5a6c3f569542d38c2764374b150b97",
+  "trace_id": "1e3dbddd794d3cf3fa8c956e30e5fcd2",
+  "user": "diana.prince@hero.net",
+  "message": "Where should you leave my packages?",
+  "terminated": "error",
+  "blocked_at": null,
+  "wall_clock_ms": 12,
+  "tokens": {
+    "in": 0,
+    "out": 0
+  },
+  "steps": [
+    {
+      "key": "sanitize",
+      "status": "passed",
+      "ms": 3
+    },
+    {
+      "key": "judge",
+      "status": "error",
+      "ms": 8
+    }
+  ],
+  "tool_calls": [],
+  "llm_calls": 0
+}
