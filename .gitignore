@@ -1,4 +1,5 @@
 .env
+.DS_Store
 runs/
 reports/
 __pycache__/
