@@ -36,8 +36,8 @@ Memory recall and save are hardcoded pipeline steps because anything that must h
 ## Responsibilities
 
 * **Order Isolation**: Decided strictly at the database query layer via MCP Toolbox tool declarations (`tools.yaml`). Parameter binding via `toolbox-core` enforces that `customer_email` is populated from the authenticated session context rather than model output.
-  * Planned single order query: `SELECT order_id, customer_email, status, items, order_date, total_amount FROM customer_orders WHERE order_id = $1 AND customer_email = $2;`
-  * Planned order history query: `SELECT order_id, customer_email, status, items, order_date, total_amount FROM customer_orders WHERE customer_email = $1 ORDER BY order_date DESC;`
+  * Shipped `get-order-status`: `SELECT order_id, customer_email, delivery_address, status, items, order_date, total_amount FROM customer_orders WHERE order_id = $1 AND customer_email = $2`. `$2` is `customer_email`, bound from the logged-in session, not chosen by the model.
+  * Shipped `find-customer-orders`: `SELECT order_id, customer_email, delivery_address, status, items, order_date, total_amount FROM customer_orders WHERE customer_email = $1 ORDER BY order_date DESC`. `$1` is `customer_email`, bound from the session.
 * **API Key Custody**: `GOOGLE_API_KEY` and `MEM0_API_KEY` are held exclusively by local backend runtimes: the web server process, the CLI process (which imports and runs the pipeline directly), and the two A2A microservices (Judge and Masker). The browser frontend never sees or receives API keys.
 * **Turn Budgets**: Decided and enforced in code by the central `pipeline` orchestration loop by tracking elapsed wall-clock time (`T-BUD-WALL`), tool execution iterations (`T-BUD-TOOLS`), and token counters (`T-BUD-TOKENS`) across steps.
 
@@ -61,9 +61,8 @@ Memory recall and save are hardcoded pipeline steps because anything that must h
 | **Bounded and honest** | Wall clock, token, and tool bounds are strictly enforced | **In code** (Pipeline budget counters) | The orchestrator loop checks counters against thresholds on every iteration, terminating with `terminated: "cap"` when exceeded. |
 | **Evidence over vibes** | All quality assertions must come from the eval runner | **In code** (Eval test suite & run log validator) | Metrics are asserted against machine-readable JSON logs in `runs/<turn_id>.json`, never subjective impressions. |
 
-<!-- Blank lines reserved for trace IDs: -->
-<!-- False block trace ID: The eval found zero false blocks. -->
-<!-- False pass trace ID: The eval found zero false passes. -->
+* **False block**: The passing eval measured `T-LEGIT-FALSE-BLOCK` at 0.0 (n=30). There is no trace id, because no legitimate customer message was blocked.
+* **False pass**: The passing eval measured `T-ATTACK-BLOCK` at 1.0 (n=30). There is no false-pass trace id. An earlier run allowed X30, the premium-discount attack; a Judge pattern now blocks that message before the model runs, and the final run has no remaining false pass to open.
 ---
 
 ## Communication
@@ -146,9 +145,9 @@ original gate in your report.
     * Agent: 4480 ms
     * Masker: 5 ms
     * Save: 827 ms
-  * *Note*: The extremely low Judge and Guardrail times are because they use the "shop fast path"—ordinary shop questions return `allow` and `safe` in code, skipping the models entirely.
+  * *Note*: Those Judge and Guardrail times are the shop fast path: ordinary shop questions return `allow` and `safe` in code, skipping the models. That cost is worth it. The agent median is 4480 ms, so the guards are not what makes a shop question slow. The pattern-only block on the passing eval is `T-LAT-BLOCK-P95` 11 ms, against a bar of `<= 5000`.
 * **Security Judge Decision Policy (SPEC §17)**:
-  * We allow the pattern tool alone to block without consulting the model. The Judge model now *only* runs when the message is not a pattern block and is not an ordinary shop question. Ordinary shop questions return `allow` in code, skipping the model entirely to save latency.
+  * The pattern tool alone can block without consulting the model. The Judge model runs only when the message is not a pattern block and not an ordinary shop question. Ordinary shop questions return `allow` in code. The measured pattern-only block latency is `T-LAT-BLOCK-P95` 11 ms, which clears `<= 5000`.
 * **Fail-Closed Guardrail Operational Impact**:
   * Configured strictly to fail closed per P-4 and R-4. If Gemini is slow, times out, or returns an unparseable verdict, the Guardrail treats this as an operational failure and terminates the turn with an explicit `error` event (`status: 502`) rather than passing an unchecked reply.
   * *Cost*: Under API latency spikes or degradation, paying customers encounter a hard failure rather than receiving an uninspected answer. This design deliberately prioritizes data security and containment over availability.
