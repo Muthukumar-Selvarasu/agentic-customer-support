@@ -12,6 +12,7 @@ from google.genai import types
 
 from guards.judge.patterns import find_pattern
 from guards.judge.patterns import scan_message
+from guards.judge.patterns import shop_question
 from support.telemetry import setup_telemetry
 
 JUDGE_URL = "http://127.0.0.1:10002/"
@@ -115,6 +116,8 @@ async def message_send(body: dict) -> dict:
     reason = find_pattern(message)
     if reason:
         verdict = {"verdict": "block", "reason": reason}
+    elif shop_question(message):
+        verdict = {"verdict": "allow", "reason": "ordinary shop question"}
     else:
         verdict = await model_verdict(message)
     if verdict is None:

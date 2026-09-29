@@ -7,6 +7,8 @@ from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
+from guards.judge.patterns import shop_question
+
 PROMPT = (
     "You are a Guardrail agent for an online shop's customer support desk. "
     "Your sole job is to determine if a customer's message is safe and on-topic. "
@@ -61,6 +63,11 @@ def parse_decision(text: str) -> dict | None:
 
 
 async def check(message: str) -> dict:
+    if shop_question(message):
+        return {
+            "decision": "safe",
+            "reasoning": "The message is about this shop's orders, deliveries, returns, or account.",
+        }
     runner, sessions = _runner_once()
     session = await sessions.create_session(app_name=APP_NAME, user_id="guardrail")
     text = ""

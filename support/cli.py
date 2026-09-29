@@ -40,13 +40,59 @@ Tools:
 - find-customer-orders lists this customer's orders, newest first.
 - action-log records a requested change. It does not change the order itself.
 
-Order facts come only from tool results. If a tool returns no rows, say that order
-is not on this account. Do not describe another customer's order, items, or status.
+Order facts come only from tool results. If the customer names an order id, call
+get-order-status before you answer. If they name a product or ask what they ordered,
+call find-customer-orders. If a tool returns no rows, say that order is not on this
+account. Do not describe another customer's order, items, or status.
+
+A cancel, return, address change, or profile change is one action-log call. If you
+need the order id first, call find-customer-orders, then action-log once. parameters
+is a JSON string and includes order_id when the request is about an order.
+When the action-log result starts with SUCCESS, that call worked. Reply to the
+customer. Do not call action-log or any other tool again on this turn.
 
 Standing preferences may appear above the customer's message under the header
 "Relevant memories about this customer (from Mem0):". Trust tool results over
 those memories for order facts.
 """.strip()
+
+ACTION_SUCCESS = (
+    "SUCCESS. This action is recorded. Do not call action-log again. "
+    "Do not call any other tool. Reply to the customer now."
+)
+
+
+class _ActionLogResult:
+    """Same tool the model already has. A saved row comes back marked SUCCESS."""
+
+    def __init__(self, inner):
+        self._inner = inner
+        self.__name__ = inner.__name__
+        self.__doc__ = (
+            (inner.__doc__ or "")
+            + "\n\nCall this at most once. A result that starts with SUCCESS is final. "
+            "Reply to the customer and do not call this tool again."
+        )
+        self.__signature__ = inner.__signature__
+        self.__annotations__ = dict(getattr(inner, "__annotations__", {}))
+
+    async def __call__(self, *args, **kwargs):
+        result = await self._inner(*args, **kwargs)
+        text = "" if result is None else str(result)
+        if text.strip() in {"", "[]", "null", "None"}:
+            return text
+        return f"{ACTION_SUCCESS}\n{text}"
+
+
+def prepare_agent_tools(tools):
+    """Mark a saved action-log row so the model stops after the first success."""
+    prepared = []
+    for tool in tools:
+        if getattr(tool, "__name__", "") == "action-log":
+            prepared.append(_ActionLogResult(tool))
+        else:
+            prepared.append(tool)
+    return prepared
 
 
 def render(event: dict) -> str | None:
@@ -149,7 +195,7 @@ async def main() -> None:
             name="support_agent",
             model=MODEL,
             instruction=INSTRUCTION,
-            tools=list(tools),
+            tools=prepare_agent_tools(tools),
         )
         session_service = InMemorySessionService()
         session = await session_service.create_session(app_name=APP_NAME, user_id=email)

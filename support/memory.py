@@ -5,7 +5,7 @@ import os
 from mem0 import AsyncMemoryClient
 
 T_MEM_TOPK = 5
-T_MEM_MINSCORE = 0.25
+T_MEM_MINSCORE = 0.15
 T_MEM_MAXCHARS = 500
 MEMORY_HEADER = "Relevant memories about this customer (from Mem0):"
 

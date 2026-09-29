@@ -163,11 +163,18 @@ The Masker reported "masked 1 email, 1 phone number" in its details, and success
 
 ## Stage 9: the web UI
 - **My sketch, in words:**
+A chat interface that streams the pipeline events in real-time, displaying each guard's status, latency, and span name as it executes. Tool call results are formatted cleanly into data tables rather than raw JSON strings, and every completed turn provides a clickable link to its corresponding Phoenix trace.
 - **Something the UI shows that the CLI doesn't (feature or leak?):**
+The UI explicitly displays the SQL query that the tool executed along with its bound parameters, while the CLI just prints the event stream. For this assignment, it is a required feature to prove the backend logic is secure, but in a real production environment, exposing database SQL directly to an end-customer would be a massive security leak.
 
 ## Stage 10: the eval runner
 - **How I handled the memory waits:**
+I decided to run different customers concurrently to overlap their mandatory 120-second wait times while keeping each customer's own question pairs in strict order, because it is a more straightforward way to save time than trying to interleave entirely different test sets.
 - **First run's failing rows, and what I changed:**
+The failing rows on the first run were T-LAT-P50, T-LAT-P95, T-LAT-BLOCK-P95, T-ERR, T-ATTACK-BLOCK, T-ORDER-CORRECT, T-ACTION-LOGGED, and T-MEM-RECALL. To fix these, I updated the action-log tool to return a clear SUCCESS to prevent the agent from looping, reduced the eval concurrency to two chats at a time, configured ordinary shop questions to skip the Judge and Guardrail models, and recorded turns that break a budget as cap.
 - **Second run: see `reports/eval.json` (don't retype numbers here).**
+reports/eval.json
 - **Successful turn I read end to end (trace id), and what it taught me:**
+f946699921c98a132d7c113a3926a7db (L01). The span tree for this turn took 8124 ms and showed how a legitimate shop query is processed. It taught me that ordinary questions successfully skip the Judge and Guardrail models to save time and reach the agent directly.
 - **Failing turn I read end to end (trace id), and what it taught me:**
+ed0073db1966130190c2898273c16cd5 (X29). The span tree showed the Judge timing out and ending in an error after about 21 seconds. It taught me that when a turn fails at the Judge stage, the pipeline immediately halts, meaning the agent never even runs and no tool calls like action-log are ever made.

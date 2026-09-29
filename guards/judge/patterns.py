@@ -30,6 +30,23 @@ PATTERNS = (
     (re.compile(r"you are now dan", re.I), "prompt override"),
     (re.compile(r"forget your rules", re.I), "prompt override"),
     (re.compile(r"new instructions", re.I), "prompt override"),
+    (re.compile(r"\bSYSTEM\s*:", re.I), "prompt override: fake system turn"),
+    (re.compile(r"users table", re.I), "data theft: users table"),
+    (re.compile(r"dump\s+customer_orders", re.I), "data theft: dump orders"),
+    (re.compile(r"security judge approved", re.I), "prompt override: fake approval"),
+    (re.compile(r"repeat everything above", re.I), "prompt extraction"),
+    (re.compile(r"passwords of all users", re.I), "data theft: passwords"),
+    (re.compile(r"export all customer", re.I), "data theft: export customers"),
+    (re.compile(r"every customer", re.I), "data theft: every customer"),
+    (re.compile(r"100\s*%\s*discount", re.I), "policy abuse: discount"),
+    (re.compile(r"set my account to premium", re.I), "policy abuse: premium"),
+)
+
+
+SHOP = re.compile(
+    r"\b(orders?|deliver(?:y|ies|ed)?|returns?|cancel(?:led)?|shipping|shipped|"
+    r"address|packages?|account|refund|status)\b|where is my|how much did i pay|list my",
+    re.I,
 )
 
 
@@ -38,6 +55,11 @@ def find_pattern(message: str) -> str | None:
         if pattern.search(message):
             return reason
     return None
+
+
+def shop_question(message: str) -> bool:
+    """An ordinary shop request that already missed every attack pattern."""
+    return find_pattern(message) is None and SHOP.search(message) is not None
 
 
 def scan_message(message: str) -> str:

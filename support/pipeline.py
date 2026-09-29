@@ -115,7 +115,7 @@ class MaskerError(Exception):
 
 
 def _write_run(record: dict) -> None:
-    folder = Path("runs/failing" if record.get("terminated") == "error" else "runs")
+    folder = Path("runs/failing" if record.get("terminated") in {"error", "cap"} else "runs")
     folder.mkdir(parents=True, exist_ok=True)
     (folder / f"{record['turn_id']}.json").write_text(json.dumps(record, indent=2) + "\n")
 
@@ -690,6 +690,26 @@ async def _turn_events(
     )
 
     wall = _ms(started)
+    over_tools = len(tool_log) > 6
+    over_tokens = (tokens_in + tokens_out) > 30000
+    over_wall = wall > 30000
+    if over_tools or over_tokens or over_wall:
+        limit = "tool" if over_tools else "token" if over_tokens else "time"
+        record = run_record("cap", None, steps)
+        record["wall_clock_ms"] = wall
+        _write_run(record)
+        yield event(
+            {
+                "type": "final",
+                "blocked": False,
+                "blocked_at": None,
+                "response": f"This request hit the {limit} limit, so I stopped before finishing.",
+                "terminated": "cap",
+                "wall_clock_ms": wall,
+                "tokens": {"in": tokens_in, "out": tokens_out},
+            }
+        )
+        return
     record = run_record("done", None, steps)
     record["wall_clock_ms"] = wall
     _write_run(record)

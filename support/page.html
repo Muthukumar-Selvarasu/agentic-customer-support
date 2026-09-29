@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop support</title>
+  <style>
+    :root { color-scheme: light; font-family: "Iowan Old Style", Palatino, Georgia, serif; }
+    body { margin: 0; background: #f4f1ea; color: #1c1915; }
+    header { padding: 16px 24px; border-bottom: 1px solid #d9d2c5; display: flex; justify-content: space-between; align-items: baseline; }
+    h1 { font-size: 20px; font-weight: 600; margin: 0; }
+    main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; min-height: calc(100vh - 58px); }
+    #chat, #rail { padding: 16px 20px; }
+    #rail { border-left: 1px solid #d9d2c5; background: #fffdf8; overflow: auto; }
+    #messages { display: flex; flex-direction: column; gap: 10px; min-height: 60vh; }
+    form { display: flex; gap: 8px; margin-top: 12px; }
+    input, button, textarea { font: inherit; }
+    input, textarea { border: 1px solid #c8bfb0; background: white; padding: 8px 10px; width: 100%; }
+    button { background: #1c1915; color: #f4f1ea; border: 0; padding: 8px 14px; cursor: pointer; }
+    .bubble { max-width: 40rem; padding: 10px 12px; background: white; border: 1px solid #e4dccf; }
+    .bubble.you { align-self: flex-end; background: #efe7da; }
+    .turn { border-top: 1px solid #e4dccf; padding: 10px 0; }
+    .step { margin: 6px 0; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; line-height: 1.4; }
+    .step b { font-weight: 650; }
+    .sql, .args { white-space: pre-wrap; background: #f6f3ec; padding: 6px 8px; margin: 4px 0; }
+    table { border-collapse: collapse; width: 100%; font-size: 12px; background: white; }
+    th, td { border: 1px solid #e4dccf; padding: 4px 6px; text-align: left; vertical-align: top; }
+    a { color: #6b3a1f; }
+    .hidden { display: none; }
+    #login { max-width: 22rem; }
+    p.hint { color: #5c564c; font-size: 14px; }
+    @media (max-width: 800px) {
+      main { grid-template-columns: 1fr; }
+      #rail { border-left: 0; border-top: 1px solid #d9d2c5; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Shop support</h1>
+    <button id="logout" class="hidden" type="button">Log out</button>
+  </header>
+  <main>
+    <section id="chat">
+      <form id="login">
+        <input id="email" type="email" name="email" autocomplete="username" placeholder="Email" required>
+        <input id="password" type="password" name="password" autocomplete="current-password" placeholder="Password" required>
+        <button type="submit">Log in</button>
+        <p id="login-error" class="hint"></p>
+      </form>
+      <div id="desk" class="hidden">
+        <p class="hint" id="who"></p>
+        <div id="messages"></div>
+        <form id="composer">
+          <textarea id="message" rows="2" placeholder="Ask about an order"></textarea>
+          <button type="submit">Send</button>
+        </form>
+      </div>
+    </section>
+    <aside id="rail">
+      <h2>Steps</h2>
+      <p class="hint">Each guard, tool, and memory step appears here as it happens.</p>
+      <div id="turns"></div>
+    </aside>
+  </main>
+  <script>
+    const state = { userId: null, name: null };
+    const loginForm = document.querySelector("#login");
+    const desk = document.querySelector("#desk");
+    const logout = document.querySelector("#logout");
+
+    function el(tag, text) {
+      const node = document.createElement(tag);
+      if (text != null) node.textContent = text;
+      return node;
+    }
+
+    function fillSql(info, args) {
+      const params = info.params || [];
+      const lines = params.map((name, index) => {
+        if (Object.prototype.hasOwnProperty.call(args, name)) {
+          return "$" + (index + 1) + " " + name + " = " + JSON.stringify(args[name]);
+        }
+        return "$" + (index + 1) + " " + name + " = bound from session";
+      });
+      return (info.statement || "") + (lines.length ? "\n" + lines.join("\n") : "");
+    }
+
+    function table(result) {
+      const rows = Array.isArray(result) ? result : [result];
+      const objects = rows.filter((row) => row && typeof row === "object" && !Array.isArray(row));
+      if (!objects.length) return el("pre", typeof result === "string" ? result : JSON.stringify(result));
+      const keys = [...new Set(objects.flatMap((row) => Object.keys(row)))];
+      const node = document.createElement("table");
+      const head = document.createElement("tr");
+      keys.forEach((key) => head.append(el("th", key)));
+      node.append(head);
+      objects.forEach((row) => {
+        const tr = document.createElement("tr");
+        keys.forEach((key) => {
+          const value = row[key];
+          tr.append(el("td", value != null && typeof value === "object" ? JSON.stringify(value) : String(value ?? "")));
+        });
+        node.append(tr);
+      });
+      return node;
+    }
+
+    function currentTurn() {
+      const turns = document.querySelector("#turns");
+      let turn = turns.lastElementChild;
+      if (!turn || turn.dataset.closed === "1") {
+        turn = el("div");
+        turn.className = "turn";
+        turns.append(turn);
+      }
+      return turn;
+    }
+
+    function addStep(turn, text) {
+      const line = el("div", text);
+      line.className = "step";
+      turn.append(line);
+      document.querySelector("#rail").scrollTop = document.querySelector("#rail").scrollHeight;
+    }
+
+    function renderEvent(event) {
+      const turn = currentTurn();
+      if (event.type === "trace") {
+        const link = document.createElement("a");
+        if (typeof event.url === "string" && /^https?:\/\//.test(event.url)) link.href = event.url;
+        link.target = "_blank";
+        link.rel = "noopener";
+        link.textContent = "Open this turn in Phoenix";
+        const line = el("div");
+        line.className = "step";
+        line.append(link);
+        turn.append(line);
+        return;
+      }
+      if (event.type === "step") {
+        const memories = event.memories || [];
+        let extra = event.detail ? " · " + event.detail : "";
+        if (memories.length) {
+          extra = " · " + memories.map((item) => {
+            const flag = item.inserted ? "inserted" : "skipped";
+            return item.memory + " " + item.score + " " + flag;
+          }).join("; ");
+        }
+        addStep(turn, "[" + event.key + "] " + event.status + " · " + (event.ms || 0) + " ms · " + (event.span || event.key) + extra);
+        return;
+      }
+      if (event.type === "tool_call") {
+        addStep(turn, "[tool_call] " + event.name + "(" + JSON.stringify(event.args) + ")");
+        const sql = el("pre", fillSql(event.info || {}, event.args || {}));
+        sql.className = "sql";
+        turn.append(sql);
+        return;
+      }
+      if (event.type === "tool_result") {
+        addStep(turn, "[tool_result] " + event.name + " " + (event.ok ? "ok" : "error") + " · " + event.ms + " ms");
+        turn.append(table(event.result));
+        return;
+      }
+      if (event.type === "final") {
+        const bubble = el("div", event.response);
+        bubble.className = "bubble";
+        document.querySelector("#messages").append(bubble);
+        turn.dataset.closed = "1";
+        return;
+      }
+      if (event.type === "error") {
+        addStep(turn, "[error] " + event.step + " · " + event.error);
+        const bubble = el("div", event.error);
+        bubble.className = "bubble";
+        document.querySelector("#messages").append(bubble);
+        turn.dataset.closed = "1";
+      }
+    }
+
+    async function readStream(response) {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        buffer += decoder.decode(chunk.value, { stream: true });
+        let newline = buffer.indexOf("\n");
+        while (newline >= 0) {
+          const line = buffer.slice(0, newline).trim();
+          buffer = buffer.slice(newline + 1);
+          if (line) renderEvent(JSON.parse(line));
+          newline = buffer.indexOf("\n");
+        }
+      }
+    }
+
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const error = document.querySelector("#login-error");
+      error.textContent = "";
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          email: document.querySelector("#email").value,
+          password: document.querySelector("#password").value,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        error.textContent = payload.error || "Login failed.";
+        return;
+      }
+      state.userId = payload.user_id;
+      state.name = payload.full_name;
+      document.querySelector("#who").textContent = "Logged in as " + payload.full_name;
+      loginForm.classList.add("hidden");
+      desk.classList.remove("hidden");
+      logout.classList.remove("hidden");
+    });
+
+    logout.addEventListener("click", async () => {
+      await fetch("/api/logout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ user_id: state.userId }),
+      });
+      state.userId = null;
+      desk.classList.add("hidden");
+      logout.classList.add("hidden");
+      loginForm.classList.remove("hidden");
+    });
+
+    document.querySelector("#composer").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const box = document.querySelector("#message");
+      const message = box.value.trim();
+      if (!message) return;
+      box.value = "";
+      const bubble = el("div", message);
+      bubble.className = "bubble you";
+      document.querySelector("#messages").append(bubble);
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ user_id: state.userId, message }),
+      });
+      if (!response.ok) {
+        const payload = await response.json();
+        const fail = el("div", payload.error || "Request failed.");
+        fail.className = "bubble";
+        document.querySelector("#messages").append(fail);
+        return;
+      }
+      await readStream(response);
+    });
+  </script>
+</body>
+</html>

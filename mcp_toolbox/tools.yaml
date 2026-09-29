@@ -63,6 +63,20 @@ tools:
          )
       RETURNING id, user_email, action_type, parameters
 
+  snapshot-orders:
+    kind: postgres-sql
+    source: support-db
+    description: Read every order row for the eval runner. The agent never loads this tool.
+    parameters:
+      - name: limit_rows
+        type: integer
+        description: Maximum rows to return. The runner passes 100.
+    statement: >
+      SELECT order_id, customer_email, delivery_address, status, items::text, total_amount
+      FROM customer_orders
+      ORDER BY order_id
+      LIMIT $1
+
   get-user:
     kind: postgres-sql
     source: support-db
@@ -72,7 +86,7 @@ tools:
         type: string
         description: The email the person typed at the login prompt.
     statement: >
-      SELECT email, full_name, password
+      SELECT email, full_name, password, is_premium_customer
       FROM users
       WHERE email = $1
 
@@ -83,3 +97,5 @@ toolsets:
     - action-log
   login:
     - get-user
+  eval:
+    - snapshot-orders
